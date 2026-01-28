@@ -1,4 +1,37 @@
 #!/bin/bash
+
+# Check and install required build dependencies
+echo "Checking build dependencies..."
+REQUIRED_PACKAGES="debhelper dh-dkms"
+MISSING_PACKAGES=""
+
+for pkg in $REQUIRED_PACKAGES; do
+    if ! dpkg -l | grep -q "^ii  $pkg "; then
+        MISSING_PACKAGES="$MISSING_PACKAGES $pkg"
+    fi
+done
+
+if [ -n "$MISSING_PACKAGES" ]; then
+    echo "Missing build dependencies:$MISSING_PACKAGES"
+    read -p "Do you want to install these packages? (y/n): " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        echo "Installing dependencies..."
+        sudo apt-get update
+        sudo apt-get install -y $MISSING_PACKAGES
+        if [ $? -ne 0 ]; then
+            echo "Error: Failed to install required dependencies"
+            exit 1
+        fi
+        echo "Dependencies installed successfully"
+    else
+        echo "Build dependencies are required. Exiting."
+        exit 1
+    fi
+else
+    echo "All required dependencies are already installed"
+fi
+
 sudo rm -rf build
 mkdir -p build
 
@@ -7,10 +40,10 @@ modules=("bcm2712" "bcm2711" "bcm2837" "vccmi10" "rp3a0")
 
 # Set version if not set
 if [ -z "$VERSION_DEB_PACKAGE" ]; then
-    export VERSION_DEB_PACKAGE="0.6.8"
+    export VERSION_DEB_PACKAGE="0.6.9"
 fi
 if [ -z "$VERSION_CORE" ]; then
-    export VERSION_CORE="0.6.8"
+    export VERSION_CORE="0.6.9"
 fi
 
 # Delete v from version
@@ -42,6 +75,8 @@ process_debian_template() {
 
 rm -rf build
 mkdir -p build
+# Set proper permissions for the build directory to avoid APT sandbox warnings
+chmod 755 build
 for module in "${modules[@]}"; do
 
     export MODULE_VERSION=$module
