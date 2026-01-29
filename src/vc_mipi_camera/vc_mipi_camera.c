@@ -11,7 +11,7 @@
 #include <media/v4l2-fwnode.h>
 #include <media/v4l2-event.h>
 
-#define VERSION_CAMERA "0.6.8"
+#define VERSION_CAMERA "0.6.9"
 
 int debug = 3;
 // --- Prototypes --------------------------------------------------------------
@@ -248,8 +248,7 @@ static int vc_sd_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *control)
                 if(device->libcamera_enabled)
                 {
                         // libcamera's unit for exposure is in lines count
-                        vc_sen_set_exposure(cam, control->value * vc_core_get_time_per_line_ns(cam) / 1000);
-                        return 0;
+                        return vc_sen_set_exposure(cam, control->value * vc_core_get_time_per_line_ns(cam) / 1000);
                 }
                 else
                 {
@@ -320,11 +319,11 @@ static int vc_sd_s_stream(struct v4l2_subdev *sd, int enable)
                         pm_runtime_put_noidle(dev);
                         goto err_unlock;
                 }
-               
-                ret = vc_sen_set_exposure(cam, cam->state.exposure);
-                if (ret < 0) {
-                        vc_err(dev, "%s(): Failed to set exposure: %d\n", __func__, ret);
-                        goto err_rpm_put;
+
+                                        ret = vc_sen_set_exposure(cam, cam->state.exposure);
+                        if (ret < 0) {
+                                vc_err(dev, "%s(): Failed to set exposure: %d\n", __func__, ret);
+                                goto err_rpm_put;
                 }
 
                 ret = vc_sen_start_stream(cam);
@@ -334,7 +333,7 @@ static int vc_sd_s_stream(struct v4l2_subdev *sd, int enable)
                         goto err_rpm_put;
                 }
 
-                update_frame_rate_ctrl(cam,device);           
+                update_frame_rate_ctrl(cam,device);
 
         }
         else
@@ -540,8 +539,11 @@ int vc_ctrl_s_ctrl(struct v4l2_ctrl *ctrl)
 
         // V4L2 controls values will be applied only when power is already up
         if (!pm_runtime_get_if_in_use(&client->dev))
-        	return 0;
+        {
+                vc_err(&client->dev, "%s(): Device is powered off, cannot set control 0x%08x\n", __func__, ctrl->id);
+                return 0;
 
+        }
 
         control.id = ctrl->id;
         control.value = ctrl->val;
@@ -1125,8 +1127,9 @@ static int vc_probe(struct i2c_client *client)
 
     /* Enable runtime PM and take one usage reference */
     pm_runtime_enable(dev);
+    vc_notice(dev, "%s(): Runtime PM enabled\n", __func__);
     pm_runtime_get_sync(dev);
-
+    vc_notice(dev, "%s(): Probe successful\n", __func__);
     return 0;
 
 error_media_entity:
