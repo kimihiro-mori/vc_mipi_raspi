@@ -237,8 +237,8 @@ static int vc_sd_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *control)
                 return 0;
                 
         case V4L2_CID_VBLANK:
-                vc_core_set_vmax_overwrite(cam, cam->ctrl.frame.height + control->value);
-                vc_sen_write_vmax(&cam->ctrl, cam->state.vmax_overwrite);
+                // vc_core_set_vmax_overwrite(cam, cam->ctrl.frame.height + control->value);
+                // vc_sen_write_vmax(&cam->ctrl, cam->state.vmax_overwrite);
                 return 0;
         case V4L2_CID_HFLIP:
         case V4L2_CID_VFLIP:
