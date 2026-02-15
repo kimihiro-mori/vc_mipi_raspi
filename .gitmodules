@@ -1,3 +1,4 @@
 [submodule "src/vc_mipi_core"]
 	path = src/vc_mipi_core
-	url = https://github.com/VC-MIPI-modules/vc_mipi_core.git
+	url = https://github.com/kimihiro-mori/vc_mipi_core.git
+	branch = raspberrypi/develop
