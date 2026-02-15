@@ -963,9 +963,9 @@ static void vc_update_clk_rates(struct vc_device *device, struct vc_cam *cam)
         pixel_rate.def = pixel_rate.max;
 
 
-        vblank.min = mode->vmax.min;
-        vblank.max = mode->vmax.max;
-        vblank.def = mode->vmax.min;
+        vblank.min = (mode->vmax.min > cam->ctrl.frame.height) ? (mode->vmax.min - cam->ctrl.frame.height) : 0;
+        vblank.max = (mode->vmax.max > cam->ctrl.frame.height) ? (mode->vmax.max - cam->ctrl.frame.height) : 0;
+        vblank.def = vblank.min;
 
 
 
