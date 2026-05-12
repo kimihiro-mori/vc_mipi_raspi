@@ -384,20 +384,20 @@ static int vc_sd_set_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_state *state
         struct vc_device *device = to_vc_device(sd);
         struct vc_cam *cam = to_vc_cam(sd);
         struct v4l2_mbus_framefmt *mf = &format->format;
+        __u32 saved_left, saved_top;
 
-        
         mutex_lock(&device->mutex);
-        
 
+        saved_left = cam->state.frame.left;
+        saved_top = cam->state.frame.top;
 
         vc_core_set_format(cam, mf->code);
-        // TODO vc_core_set_frame(cam, mf->top, mf->left, mf->width, mf->height);
-        vc_core_set_frame(cam, 0, 0, mf->width, mf->height);
+        vc_core_set_frame(cam, saved_left, saved_top, mf->width, mf->height);
         mf->field = V4L2_FIELD_NONE;
         mf->colorspace = V4L2_COLORSPACE_SRGB;
 
         mutex_unlock(&device->mutex);
-        
+
         return 0;
 }
 
